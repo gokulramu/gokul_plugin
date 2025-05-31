@@ -190,6 +190,29 @@ class Gokul_Plugin_Flipkart_API {
             'log' => $log
         ];
     }
+
+    public function test_account() {
+        // Example: Make a lightweight API call to Flipkart to test credentials
+        $endpoint = 'https://api.flipkart.net/sellers/v3/orders/search?status=APPROVED&limit=1';
+        $headers = [
+            'Authorization' => 'Bearer ' . $this->get_access_token(),
+            'Content-Type'  => 'application/json',
+            'Accept'        => 'application/json',
+        ];
+        $response = wp_remote_get($endpoint, [
+            'headers' => $headers,
+            'timeout' => 10,
+        ]);
+        if (is_wp_error($response)) {
+            return ['success' => false, 'message' => $response->get_error_message()];
+        }
+        $code = wp_remote_retrieve_response_code($response);
+        if ($code === 200) {
+            return ['success' => true, 'message' => 'Connection successful!'];
+        } else {
+            return ['success' => false, 'message' => 'API error: HTTP ' . $code];
+        }
+    }
 }
 
 // --- CRON SCHEDULING: Automatic health check every hour, if enabled ---

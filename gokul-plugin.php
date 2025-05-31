@@ -291,3 +291,8 @@ add_action('admin_menu', function() {
         }
     );
 });
+
+<?php
+if (isset($test_results['log'])) {
+    echo '<div class="notice notice-error"><strong>Log:</strong> ' . esc_html($test_results['log']) . '</div>';
+}

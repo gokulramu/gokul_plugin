@@ -68,11 +68,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['gokul_marketplace_act
         $client_id = $account['client_id'];
         $client_secret = $account['client_secret'];
         $type = $account['type'];
-        $service_name = $account['service_name'] ?? ''; // Use from account if available
+        $service_name = $account['service_name'] ?? '';
         $partner_id = $account['partner_id'] ?? '';
-        // Instantiate the API class before calling test_account
         $api = new $class($client_id, $client_secret, $type, $service_name, $partner_id);
         $test_results = $api->test_account();
+        // Add log if failed
+        if (!$test_results['success']) {
+            $test_results['log'] = $test_results['message'];
+        }
     } else {
         $test_results = [
             'success' => false,
@@ -256,5 +259,8 @@ function gokul_marketplace_apis_admin() {
     }
     </script>
     <?php
+}
+if (isset($test_results['log']) && $test_results['log']) {
+    echo '<div class="notice notice-error"><strong>Log:</strong> ' . esc_html($test_results['log']) . '</div>';
 }
 ?>
