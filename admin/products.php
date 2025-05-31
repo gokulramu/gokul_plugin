@@ -76,34 +76,41 @@ function gokul_products_admin() {
         echo '<div class="notice notice-success" style="margin-bottom:16px;"><p>' . esc_html($msg) . '</p></div>';
     }
 
-    // Fetch and display products
-    global $wpdb;
-    $table = $wpdb->prefix . 'gokul_products';
-    $all_products = [];
+    // --- Progress Bar (Visual Only) ---
+    echo '<div id="import-progress" style="display:none;margin-bottom:10px;">
+        <div style="background:#eee;width:100%;height:20px;position:relative;">
+            <div id="import-bar" style="background:#0073aa;width:0;height:100%;transition:width 0.3s;"></div>
+            <span id="import-percent" style="position:absolute;left:50%;top:0;transform:translateX(-50%);color:#fff;">0%</span>
+        </div>
+    </div>';
 
-    if ($selected) {
-        // Filter could be improved if you store account/marketplace on each row
-        $all_products = $wpdb->get_results("SELECT * FROM $table ORDER BY created_at DESC LIMIT 50");
-    } else {
-        $all_products = $wpdb->get_results("SELECT * FROM $table ORDER BY created_at DESC LIMIT 50");
-    }
+    // Fetch and display products from custom post type
+    $args = [
+        'post_type'      => 'gokul_product',
+        'posts_per_page' => 50,
+        'post_status'    => 'publish',
+    ];
+    $products_query = new WP_Query($args);
+    $total_products = $products_query->found_posts;
+
+    echo '<p><strong>Total Listings: ' . esc_html($total_products) . '</strong></p>';
 
     echo '<table class="widefat striped" style="margin-top:20px;"><thead><tr>';
-    echo '<th>SKU</th><th>Title</th><th>GTIN</th><th>Status</th><th>Lifecycle</th><th>Created At</th>';
+    echo '<th>SKU</th><th>Title</th><th>Date</th>';
     echo '</tr></thead><tbody>';
-    if ($all_products) {
-        foreach ($all_products as $product) {
+    if ($products_query->have_posts()) {
+        while ($products_query->have_posts()) {
+            $products_query->the_post();
+            $sku = get_post_meta(get_the_ID(), '_gokul_product_sku', true);
             echo '<tr>';
-            echo '<td>' . esc_html($product->sku) . '</td>';
-            echo '<td>' . esc_html($product->title) . '</td>';
-            echo '<td>' . esc_html($product->gtin) . '</td>';
-            echo '<td>' . esc_html($product->status) . '</td>';
-            echo '<td>' . esc_html($product->lifecycle) . '</td>';
-            echo '<td>' . esc_html($product->created_at) . '</td>';
+            echo '<td>' . esc_html($sku) . '</td>';
+            echo '<td>' . esc_html(get_the_title()) . '</td>';
+            echo '<td>' . esc_html(get_the_date()) . '</td>';
             echo '</tr>';
         }
+        wp_reset_postdata();
     } else {
-        echo '<tr><td colspan="6"><em>No products found.</em></td></tr>';
+        echo '<tr><td colspan="3"><em>No products found.</em></td></tr>';
     }
     echo '</tbody></table>';
 
@@ -124,3 +131,25 @@ if (is_admin() && isset($_GET['import_walmart'])) {
     echo "Walmart products imported!";
 }
 ?>
+<script>
+document.querySelectorAll('form').forEach(form => {
+    form.addEventListener('submit', function() {
+        var progress = document.getElementById('import-progress');
+        var bar = document.getElementById('import-bar');
+        var percent = document.getElementById('import-percent');
+        if(progress && bar && percent) {
+            progress.style.display = 'block';
+            bar.style.width = '0';
+            percent.textContent = '0%';
+            let i = 0;
+            let interval = setInterval(function() {
+                i += 10;
+                if(i > 100) i = 100;
+                bar.style.width = i + '%';
+                percent.textContent = i + '%';
+                if(i === 100) clearInterval(interval);
+            }, 200);
+        }
+    });
+});
+</script>
