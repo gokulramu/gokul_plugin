@@ -140,6 +140,3 @@ function gokul_products_admin() {
     </script>
     <?php
 }
-
-// Only run for admin and when a button is clicked, for example
-?>
