@@ -72,7 +72,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['gokul_marketplace_act
             $type = $account['type'];
             $service_name = $account['service_name'] ?? '';
             $partner_id = $account['partner_id'] ?? '';
-            $api = new $class($client_id, $client_secret, $type, $service_name, $partner_id);
+            if ($marketplace === 'walmart') {
+                $api = new Gokul_Plugin_Walmart_API($client_id, $client_secret);
+            } else {
+                $api = new $class($client_id, $client_secret, $type, $service_name, $partner_id);
+            }
             $test_results = $api->test_account();
             // Add log if failed
             if (!$test_results['success']) {

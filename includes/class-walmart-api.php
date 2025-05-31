@@ -79,9 +79,9 @@ if (!class_exists('Gokul_Plugin_Walmart_API')) {
                 'Authorization' => 'Bearer ' . $token,
                 'Accept' => 'application/json',
                 'WM_CONSUMER.ID' => $this->client_id,
-                'WM_QOS.CORRELATION_ID' => uniqid(),
-                'WM_SVC.NAME' => 'Walmart Marketplace',
-                // 'Content-Type' => 'application/json', // Not required for GET
+                'WM_QOS.CORRELATION_ID' => uniqid(), // must not be blank!
+                'WM_SVC.NAME' => 'Walmart Marketplace', // must not be blank!
+                // 'Content-Type' => 'application/json', // only for POST/PUT
             ];
 
             $response = wp_remote_get($endpoint, [
@@ -125,8 +125,8 @@ if (!class_exists('Gokul_Plugin_Walmart_API')) {
                 'Authorization' => 'Bearer ' . $token,
                 'Accept' => 'application/json',
                 'WM_CONSUMER.ID' => $this->client_id,
-                'WM_QOS.CORRELATION_ID' => uniqid(),
-                'WM_SVC.NAME' => 'Walmart Marketplace',
+                'WM_QOS.CORRELATION_ID' => uniqid(), // must not be blank!
+                'WM_SVC.NAME' => 'Walmart Marketplace', // must not be blank!
             ];
 
             $response = wp_remote_get($endpoint, [
@@ -154,4 +154,10 @@ if (!class_exists('Gokul_Plugin_Walmart_API')) {
 
         // ... (other methods can use $this->get_access_token() for Authorization header) ...
     }
+}
+
+if ($marketplace === 'walmart') {
+    $api = new Gokul_Plugin_Walmart_API($client_id, $client_secret);
+} else {
+    $api = new $class($client_id, $client_secret, $type, $service_name, $partner_id);
 }
