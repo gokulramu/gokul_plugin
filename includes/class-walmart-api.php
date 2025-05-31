@@ -25,36 +25,40 @@ if (!class_exists('Gokul_Plugin_Walmart_API')) {
          * Generate Walmart API digital signature and timestamp using the official JAR.
          */
         private function generate_signature($requestUrl, $requestMethod = 'GET') {
-            $jarPath = '/path/to/DigitalSignatureUtil-1.0.0.jar'; // <-- UPDATE THIS
             $consumerId = $this->client_id;
-            $privateKey = $this->client_secret; // path to PKCS#8 private key file
+            $privateKeyPem = file_get_contents($this->client_secret); // path to PKCS#8 private key file
 
-            $cmd = escapeshellcmd("java -jar \"$jarPath\" DigitalSignatureUtil \"$requestUrl\" \"$consumerId\" \"$privateKey\" \"$requestMethod\"");
-            exec($cmd, $output, $return_var);
-
-            if ($return_var !== 0) {
-                return ['error' => 'Failed to run DigitalSignatureUtil JAR.'];
+            if (!$privateKeyPem) {
+                return ['error' => 'Could not read private key file.'];
             }
 
+            $timestamp = (string) round(microtime(true) * 1000);
+
+            // Build the string to sign
+            $stringToSign = $consumerId . "\n" . $requestUrl . "\n" . strtoupper($requestMethod) . "\n" . $timestamp . "\n";
+
+            // Load the private key
+            $privateKey = openssl_pkey_get_private($privateKeyPem);
+            if (!$privateKey) {
+                return ['error' => 'Invalid private key format or password required.'];
+            }
+
+            // Sign the string
             $signature = '';
-            $timestamp = '';
-            foreach ($output as $line) {
-                if (stripos($line, 'WM_SEC.AUTH_SIGNATURE:') !== false) {
-                    $signature = trim(str_replace('WM_SEC.AUTH_SIGNATURE:', '', $line));
-                }
-                if (stripos($line, 'WM_SEC.TIMESTAMP:') !== false) {
-                    $timestamp = trim(str_replace('WM_SEC.TIMESTAMP:', '', $line));
-                }
+            $success = openssl_sign($stringToSign, $signature, $privateKey, OPENSSL_ALGO_SHA256);
+            openssl_free_key($privateKey);
+
+            if (!$success) {
+                return ['error' => 'Failed to sign data with private key.'];
             }
 
-            if ($signature && $timestamp) {
-                return [
-                    'signature' => $signature,
-                    'timestamp' => $timestamp
-                ];
-            } else {
-                return ['error' => 'Could not parse signature or timestamp from JAR output.'];
-            }
+            // Base64 encode the signature
+            $signature_b64 = base64_encode($signature);
+
+            return [
+                'signature' => $signature_b64,
+                'timestamp' => $timestamp
+            ];
         }
 
         /**

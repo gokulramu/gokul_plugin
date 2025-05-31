@@ -89,14 +89,38 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['gokul_marketplace_act
     }
 }
 
+// Handle JAR upload (before POST actions)
+if (isset($_FILES['walmart_jar_file']) && $_FILES['walmart_jar_file']['error'] === UPLOAD_ERR_OK) {
+    $upload_dir = GOKUL_PATH . 'walmart_jar/';
+    if (!file_exists($upload_dir)) mkdir($upload_dir, 0755, true);
+    $target_path = $upload_dir . 'DigitalSignatureUtil-1.0.0.jar';
+    if (move_uploaded_file($_FILES['walmart_jar_file']['tmp_name'], $target_path)) {
+        update_option('gokul_walmart_jar_path', $target_path);
+        $test_results['log'] = 'Walmart Digital Signature JAR uploaded successfully!';
+    } else {
+        $test_results['log'] = 'Failed to upload JAR file.';
+    }
+}
+
 function gokul_marketplace_apis_admin() {
     global $test_results, $tested_marketplace, $tested_account_index;
     $accounts = gokul_marketplace_get_accounts();
+    $walmart_jar_path = get_option('gokul_walmart_jar_path', '');
 
     ?>
     <div class="wrap">
         <h1>Marketplace APIs</h1>
         <p>Manage all your marketplace API accounts for both Domestic and International channels.</p>
+
+        <!-- Walmart JAR Upload -->
+        <h2>Walmart Digital Signature JAR Upload</h2>
+        <form method="post" enctype="multipart/form-data" style="margin-bottom:20px;">
+            <input type="file" name="walmart_jar_file" accept=".jar" required>
+            <button type="submit" class="button">Upload Walmart JAR</button>
+            <?php if ($walmart_jar_path && file_exists($walmart_jar_path)): ?>
+                <span style="color:green;">Current JAR: <?php echo esc_html(basename($walmart_jar_path)); ?></span>
+            <?php endif; ?>
+        </form>
 
         <?php
         // Show log if present
