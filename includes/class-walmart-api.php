@@ -138,5 +138,3 @@ if (!class_exists('Gokul_Plugin_Walmart_API')) {
         }
     }
 }
-// Now you can safely call:
-$walmart_api->schedule_background_product_import($products);

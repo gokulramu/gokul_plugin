@@ -291,3 +291,7 @@ add_action('admin_menu', function() {
         }
     );
 });
+
+// Example: in gokul-plugin.php or admin/products.php
+$walmart_api = new Gokul_Plugin_Walmart_API($client_id, $client_secret, $type, $service_name, $partner_id);
+$walmart_api->schedule_background_product_import($products);
