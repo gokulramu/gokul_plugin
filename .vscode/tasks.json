@@ -1,0 +1,32 @@
+{
+  "version": "2.0.0",
+  "tasks": [
+    {
+      "label": "Git Add All",
+      "type": "shell",
+      "command": "git add .",
+      "problemMatcher": []
+    },
+    {
+      "label": "Git Commit",
+      "type": "shell",
+      "command": "git commit -m \"Initial commit or update plugin code\"",
+      "problemMatcher": []
+    },
+    {
+      "label": "Git Push",
+      "type": "shell",
+      "command": "git push -u origin main",
+      "problemMatcher": []
+    }
+  ]
+}
+// This file defines tasks for adding, committing, and pushing changes to a Git repository. 
+
+// The tasks can be run from the command palette or terminal in VSCode.
+// Each task is defined with a label, type, command, and problem matcher.
+// The "Git Add All" task stages all changes, "Git Commit" commits them with a message,
+// and "Git Push" pushes the changes to the remote repository on the main branch.
+// Make sure to replace the commit message with a relevant one for your changes.
+
+ 

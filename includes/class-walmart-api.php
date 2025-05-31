@@ -138,9 +138,5 @@ if (!class_exists('Gokul_Plugin_Walmart_API')) {
         }
     }
 }
-
-// Make sure you have something like this BEFORE calling any method:
-$walmart_api = new Gokul_Plugin_Walmart_API($client_id, $client_secret, $type, $service_name, $partner_id);
-
 // Now you can safely call:
 $walmart_api->schedule_background_product_import($products);
