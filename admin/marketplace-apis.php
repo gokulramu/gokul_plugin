@@ -65,12 +65,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['gokul_marketplace_act
     $account = $accounts[$marketplace][$account_index] ?? null;
     $class = 'Gokul_Plugin_' . ucfirst($marketplace) . '_API';
     if ($account && class_exists($class) && method_exists($class, 'test_account')) {
-        // Corrected instantiation and method call
         $client_id = $account['client_id'];
         $client_secret = $account['client_secret'];
         $type = $account['type'];
-        $service_name = ''; // Define or extract service_name as needed
-        $partner_id = '';  // Define or extract partner_id as needed
+        $service_name = $account['service_name'] ?? ''; // Use from account if available
+        $partner_id = $account['partner_id'] ?? '';
+        // Instantiate the API class before calling test_account
         $api = new $class($client_id, $client_secret, $type, $service_name, $partner_id);
         $test_results = $api->test_account();
     } else {
@@ -79,7 +79,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['gokul_marketplace_act
             'log' => 'API class or test_account method not implemented for ' . esc_html($marketplace)
         ];
     }
-    // To show the log under the tested account, set a variable
     $tested_marketplace = $marketplace;
     $tested_account_index = $account_index;
 }
