@@ -47,7 +47,6 @@ if (!class_exists('Gokul_Plugin_Walmart_API')) {
 
             // Debug: log the full response for troubleshooting
             if ($code !== 200) {
-                // You can also use error_log(print_r($data, true)); for server logs
                 return [
                     'error' => 'OAuth error: HTTP ' . $code . ' - ' . print_r($data, true)
                 ];
@@ -79,6 +78,8 @@ if (!class_exists('Gokul_Plugin_Walmart_API')) {
             $headers = [
                 'Authorization' => 'Bearer ' . $token,
                 'Accept' => 'application/json',
+                'WM_SVC.NAME' => 'Walmart Marketplace',
+                'WM_QOS.CORRELATION_ID' => uniqid(),
             ];
 
             $response = wp_remote_get($endpoint, [
