@@ -22,7 +22,6 @@ function gokul_products_admin() {
             $class = "Gokul_Plugin_" . ucfirst($import_account) . "_API";
             if (class_exists($class)) {
                 try {
-                    // Some APIs may need different param names, adjust if needed!
                     $api = new $class(
                         $acc['client_id'],
                         $acc['client_secret'],
@@ -30,7 +29,9 @@ function gokul_products_admin() {
                         'GokulPlugin',
                         $acc['partner_id'] ?? ''
                     );
-                    $msg = $api->schedule_background_product_import();
+                    $products = $api->get_catalog_items(['limit' => 100]);
+                    $api->schedule_background_product_import($products);
+                    $msg = 'Import completed!';
                 } catch (Throwable $e) {
                     $msg = 'Import failed: ' . $e->getMessage();
                 }
