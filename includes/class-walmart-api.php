@@ -29,7 +29,9 @@ if (!class_exists('Gokul_Plugin_Walmart_API')) {
             $headers = [
                 'Authorization' => 'Basic ' . base64_encode($this->client_id . ':' . $this->client_secret),
                 'Content-Type' => 'application/x-www-form-urlencoded',
-                'Accept' => 'application/json'
+                'Accept' => 'application/json',
+                'WM_QOS.CORRELATION_ID' => uniqid(),
+                'WM_SVC.NAME' => 'Walmart Marketplace'
             ];
 
             $response = wp_remote_post($endpoint, [
