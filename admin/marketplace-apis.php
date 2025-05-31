@@ -10,7 +10,11 @@ function gokul_marketplace_get_accounts() {
     return $accounts;
 }
 
-// Handle add/edit/delete/test actions
+// Handle add/edit/delete/test actions (no output here)
+$test_results = [];
+$tested_marketplace = null;
+$tested_account_index = null;
+
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['gokul_marketplace_action'])) {
     $accounts = gokul_marketplace_get_accounts();
 
@@ -27,7 +31,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['gokul_marketplace_act
         if (!isset($accounts[$marketplace])) $accounts[$marketplace] = [];
         $accounts[$marketplace][] = $new_account;
         update_option(GOKUL_MARKETPLACE_ACCOUNTS_OPTION, $accounts, true);
-        echo '<div class="notice notice-success"><p>Account added!</p></div>';
+        $test_results['log'] = 'Account added!';
     }
 
     // Edit account
@@ -40,7 +44,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['gokul_marketplace_act
             $accounts[$marketplace][$account_index]['client_secret'] = sanitize_text_field($_POST['client_secret']);
             $accounts[$marketplace][$account_index]['type'] = sanitize_text_field($_POST['type']);
             update_option(GOKUL_MARKETPLACE_ACCOUNTS_OPTION, $accounts, true);
-            echo '<div class="notice notice-success"><p>Account updated!</p></div>';
+            $test_results['log'] = 'Account updated!';
         }
     }
 
@@ -51,54 +55,55 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['gokul_marketplace_act
         if (isset($accounts[$marketplace][$account_index])) {
             array_splice($accounts[$marketplace], $account_index, 1);
             update_option(GOKUL_MARKETPLACE_ACCOUNTS_OPTION, $accounts, true);
-            echo '<div class="notice notice-success"><p>Account deleted!</p></div>';
+            $test_results['log'] = 'Account deleted!';
         }
     }
-}
 
-// Test logic: on POST, run the test API call and store the results
-$test_results = [];
-if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['gokul_marketplace_action']) && $_POST['gokul_marketplace_action'] === 'test_account') {
-    $marketplace = sanitize_text_field($_POST['marketplace']);
-    $account_index = intval($_POST['account_index']);
-    $accounts = gokul_marketplace_get_accounts();
-    $account = $accounts[$marketplace][$account_index] ?? null;
-    $class = 'Gokul_Plugin_' . ucfirst($marketplace) . '_API';
-    if ($account && class_exists($class) && method_exists($class, 'test_account')) {
-        $client_id = $account['client_id'];
-        $client_secret = $account['client_secret'];
-        $type = $account['type'];
-        $service_name = $account['service_name'] ?? '';
-        $partner_id = $account['partner_id'] ?? '';
-        $api = new $class($client_id, $client_secret, $type, $service_name, $partner_id);
-        $test_results = $api->test_account();
-        // Add log if failed
-        if (!$test_results['success']) {
-            $test_results['log'] = $test_results['message'];
+    // Test logic: on POST, run the test API call and store the results
+    if ($_POST['gokul_marketplace_action'] === 'test_account') {
+        $marketplace = sanitize_text_field($_POST['marketplace']);
+        $account_index = intval($_POST['account_index']);
+        $accounts = gokul_marketplace_get_accounts();
+        $account = $accounts[$marketplace][$account_index] ?? null;
+        $class = 'Gokul_Plugin_' . ucfirst($marketplace) . '_API';
+        if ($account && class_exists($class) && method_exists($class, 'test_account')) {
+            $client_id = $account['client_id'];
+            $client_secret = $account['client_secret'];
+            $type = $account['type'];
+            $service_name = $account['service_name'] ?? '';
+            $partner_id = $account['partner_id'] ?? '';
+            $api = new $class($client_id, $client_secret, $type, $service_name, $partner_id);
+            $test_results = $api->test_account();
+            // Add log if failed
+            if (!$test_results['success']) {
+                $test_results['log'] = $test_results['message'];
+            }
+        } else {
+            $test_results = [
+                'success' => false,
+                'log' => 'API class or test_account method not implemented for ' . esc_html($marketplace)
+            ];
         }
-    } else {
-        $test_results = [
-            'success' => false,
-            'log' => 'API class or test_account method not implemented for ' . esc_html($marketplace)
-        ];
+        $tested_marketplace = $marketplace;
+        $tested_account_index = $account_index;
     }
-    $tested_marketplace = $marketplace;
-    $tested_account_index = $account_index;
 }
 
 function gokul_marketplace_apis_admin() {
     global $test_results, $tested_marketplace, $tested_account_index;
     $accounts = gokul_marketplace_get_accounts();
 
-    // Show log if present
-    if (isset($test_results['log']) && $test_results['log']) {
-        echo '<div class="notice notice-error"><strong>Log:</strong> ' . esc_html($test_results['log']) . '</div>';
-    }
-
     ?>
     <div class="wrap">
         <h1>Marketplace APIs</h1>
         <p>Manage all your marketplace API accounts for both Domestic and International channels.</p>
+
+        <?php
+        // Show log if present
+        if (isset($test_results['log']) && $test_results['log']) {
+            echo '<div class="notice notice-error"><strong>Log:</strong> ' . esc_html($test_results['log']) . '</div>';
+        }
+        ?>
 
         <h2>Add New Account</h2>
         <form method="post" class="gokul-add-account-form" style="margin-bottom:40px;">
@@ -197,7 +202,7 @@ function gokul_marketplace_apis_admin() {
                     <?php
                     if (isset($tested_marketplace, $tested_account_index) && $tested_marketplace === $marketplace && $tested_account_index == $idx && isset($test_results['log'])) {
                         echo '<div class="gokul-log" style="margin-top:14px;background:#f9fafb;border:1px solid #ccc;padding:10px;border-radius:6px;max-width:100%;overflow:auto;font-size:12px;">';
-                        echo '<strong>Detailed Log:</strong><br>' . $test_results['log'];
+                        echo '<strong>Detailed Log:</strong><br>' . esc_html($test_results['log']);
                         echo '</div>';
                     }
                     ?>
