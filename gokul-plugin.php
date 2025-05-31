@@ -267,7 +267,7 @@ add_action('admin_menu', function() {
 
     add_submenu_page('gokul_plugin', 'Employee Manager', 'Employee Manager', 'manage_options', 'gokul_employee_manager', 'gokul_employee_manager_admin');
     add_submenu_page('gokul_plugin', 'Marketplace APIs', 'Marketplace APIs', 'manage_options', 'gokul_marketplace_apis', 'gokul_marketplace_apis_admin');
-    add_submenu_page('gokul_plugin', 'Products', 'Products', 'manage_options', 'gokul_products', 'gokul_products_admin');
+    add_submenu_page('gokul_plugin', 'Products', 'Products', 'manage_options', 'gokul-products', 'gokul_products_admin');
     add_submenu_page('gokul_plugin', 'Orders', 'Orders', 'manage_options', 'gokul_orders', 'gokul_orders_admin');
     add_submenu_page('gokul_plugin', 'Flipkart Orders', 'Flipkart Orders', 'manage_options', 'gokul-flipkart-orders', 'gokul_flipkart_orders_admin');
     add_submenu_page('gokul_plugin', 'Domestic Orders', 'Domestic Orders', 'manage_options', 'gokul-domestic-orders', 'gokul_domestic_orders_admin');

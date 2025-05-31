@@ -115,29 +115,31 @@ function gokul_products_admin() {
     echo '</tbody></table>';
 
     echo '</div>';
+    ?>
+    <script>
+    document.querySelectorAll('form').forEach(form => {
+        form.addEventListener('submit', function() {
+            var progress = document.getElementById('import-progress');
+            var bar = document.getElementById('import-bar');
+            var percent = document.getElementById('import-percent');
+            if(progress && bar && percent) {
+                progress.style.display = 'block';
+                bar.style.width = '0';
+                percent.textContent = '0%';
+                let i = 0;
+                let interval = setInterval(function() {
+                    i += 10;
+                    if(i > 100) i = 100;
+                    bar.style.width = i + '%';
+                    percent.textContent = i + '%';
+                    if(i === 100) clearInterval(interval);
+                }, 200);
+            }
+        });
+    });
+    </script>
+    <?php
 }
 
 // Only run for admin and when a button is clicked, for example
 ?>
-<script>
-document.querySelectorAll('form').forEach(form => {
-    form.addEventListener('submit', function() {
-        var progress = document.getElementById('import-progress');
-        var bar = document.getElementById('import-bar');
-        var percent = document.getElementById('import-percent');
-        if(progress && bar && percent) {
-            progress.style.display = 'block';
-            bar.style.width = '0';
-            percent.textContent = '0%';
-            let i = 0;
-            let interval = setInterval(function() {
-                i += 10;
-                if(i > 100) i = 100;
-                bar.style.width = i + '%';
-                percent.textContent = i + '%';
-                if(i === 100) clearInterval(interval);
-            }, 200);
-        }
-    });
-});
-</script>
