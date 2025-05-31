@@ -144,6 +144,40 @@ function gokul_create_or_update_page($slug, $title, $shortcode) {
     }
 }
 
+// Register 'gokul_product' custom post type for products
+function gokul_register_product_post_type() {
+    register_post_type('gokul_product', array(
+        'labels' => array(
+            'name' => 'Products',
+            'singular_name' => 'Product',
+        ),
+        'public' => true,
+        'has_archive' => true,
+        'show_in_menu' => true,
+        'supports' => array('title', 'editor', 'thumbnail'),
+        'menu_icon' => 'dashicons-products',
+    ));
+}
+add_action('init', 'gokul_register_product_post_type');
+
+// Example: Add SKU as custom field (meta box)
+function gokul_add_product_meta_boxes() {
+    add_meta_box('gokul_product_sku', 'Product SKU', 'gokul_product_sku_callback', 'gokul_product', 'side');
+}
+add_action('add_meta_boxes', 'gokul_add_product_meta_boxes');
+
+function gokul_product_sku_callback($post) {
+    $sku = get_post_meta($post->ID, '_gokul_product_sku', true);
+    echo '<input type="text" name="gokul_product_sku" value="' . esc_attr($sku) . '" />';
+}
+
+function gokul_save_product_meta($post_id) {
+    if (array_key_exists('gokul_product_sku', $_POST)) {
+        update_post_meta($post_id, '_gokul_product_sku', sanitize_text_field($_POST['gokul_product_sku']));
+    }
+}
+add_action('save_post_gokul_product', 'gokul_save_product_meta');
+
 // Load logger and main class files
 require_once GOKUL_PATH . 'includes/logger.php';
 require_once GOKUL_PATH . 'includes/class-employee.php';

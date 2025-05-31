@@ -55,48 +55,18 @@ if (!class_exists('Gokul_Plugin_Walmart_API')) {
         }
 
         /**
-         * Import or update a single product.
+         * Import or update a single product as a custom post.
          * @param array $data
          * @return bool
          */
         public function import_product($data) {
-            global $wpdb;
-            $defaults = [
-                'sku' => '',
-                'title' => '',
-                'gtin' => '',
-                'status' => '',
-                'lifecycle' => '',
-                'created_at' => current_time('mysql'),
-                'product_name' => '',
-                'description' => '',
-                'brand' => '',
-                'price' => null,
-                'main_image_url' => '',
-                'additional_images' => '',
-                'category' => '',
-                'condition_status' => '',
-                'account_name' => '',
-                'publish_status' => '',
-                'thumbnail' => '',
-                'product_link' => '',
-                'stock' => 0,
-            ];
-            $fields = array_merge($defaults, $data);
-
-            if (empty($fields['sku'])) return false;
-
-            $exists = $wpdb->get_var($wpdb->prepare("SELECT id FROM {$this->table} WHERE sku=%s", $fields['sku']));
-            if ($exists) {
-                $wpdb->update($this->table, $fields, ['sku' => $fields['sku']]);
-            } else {
-                $wpdb->insert($this->table, $fields);
-            }
+            if (empty($data['sku'])) return false;
+            $this->upsert_product_as_post($data);
             return true;
         }
 
         /**
-         * Import an array of products.
+         * Import an array of products as custom posts.
          * @param array $products
          */
         public function import_products($products) {
@@ -149,5 +119,61 @@ if (!class_exists('Gokul_Plugin_Walmart_API')) {
             // TODO: Implement real token retrieval per Walmart API docs
             return 'YOUR_ACCESS_TOKEN_HERE';
         }
+
+        private function upsert_product_as_post($product) {
+            // $product should be an array/object from the API with at least SKU and title
+            $sku = $product['sku'];
+            $title = $product['title'];
+            $desc = $product['description'] ?? '';
+
+            // Check if a product post with this SKU exists
+            $existing = new WP_Query([
+                'post_type' => 'gokul_product',
+                'meta_query' => [
+                    [
+                        'key' => '_gokul_product_sku',
+                        'value' => $sku,
+                        'compare' => '='
+                    ]
+                ],
+                'posts_per_page' => 1,
+                'fields' => 'ids'
+            ]);
+
+            if ($existing->have_posts()) {
+                $post_id = $existing->posts[0];
+                // Update post
+                wp_update_post([
+                    'ID' => $post_id,
+                    'post_title' => $title,
+                    'post_content' => $desc,
+                ]);
+            } else {
+                // Insert new post
+                $post_id = wp_insert_post([
+                    'post_type' => 'gokul_product',
+                    'post_title' => $title,
+                    'post_content' => $desc,
+                    'post_status' => 'publish'
+                ]);
+            }
+
+            // Update SKU meta
+            update_post_meta($post_id, '_gokul_product_sku', $sku);
+
+            // Add more meta fields as needed (price, image, etc)
+        }
+
+        /**
+         * Schedule background product import (placeholder).
+         * You can implement WP Cron or Action Scheduler here.
+         */
+        public function schedule_background_product_import($products) {
+            // For now, just import directly (synchronously)
+            $this->import_products($products);
+            // In production, use WP Cron or Action Scheduler for real background jobs.
+        }
+
+        // ...in your import function, call upsert_product_as_post($product) for each product...
     }
 }
