@@ -164,5 +164,14 @@ if (!class_exists('Gokul_Plugin_Walmart_API')) {
                 return ['success' => false, 'message' => 'API error: HTTP ' . $code];
             }
         }
+
+        public function generate_signature($requestUrl, $requestMethod = 'GET') {
+            $jarPath = '/path/to/DigitalSignatureUtil-1.0.0.jar';
+            $consumerId = $this->client_id;
+            $privateKey = $this->client_secret; // or the path to your private key file
+
+            // If your private key is a file, use the path. If it's the key string, save it to a temp file and use that path.
+            return gokul_walmart_generate_signature($jarPath, $requestUrl, $consumerId, $privateKey, $requestMethod);
+        }
     }
 }
