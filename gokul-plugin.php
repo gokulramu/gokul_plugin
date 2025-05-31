@@ -291,8 +291,9 @@ add_action('admin_menu', function() {
         }
     );
 });
-
-<?php
+// If you want to display admin notices, use the admin_notices hook:
 if (isset($test_results['log'])) {
-    echo '<div class="notice notice-error"><strong>Log:</strong> ' . esc_html($test_results['log']) . '</div>';
+    add_action('admin_notices', function() use ($test_results) {
+        echo '<div class="notice notice-error"><strong>Log:</strong> ' . esc_html($test_results['log']) . '</div>';
+    });
 }
