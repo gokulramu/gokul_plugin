@@ -1,9 +1,9 @@
 <?php
 /*
-Plugin Name: GOKUL PLUGIN
-Description: Modular Employee Manager and Marketplace APIs with frontend login/corner and scalable structure.
-Version: 1.0
-Author: gokul
+Plugin Name: Gokul Plugin
+Description: Marketplace integration for WooCommerce.
+Version: 1.1
+Author: Your Name
 */
 
 if (!defined('ABSPATH')) exit;
