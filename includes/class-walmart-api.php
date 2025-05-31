@@ -17,7 +17,6 @@ if (!class_exists('Gokul_Plugin_Walmart_API')) {
          * Get OAuth2.0 access token from Walmart
          */
         private function get_access_token() {
-            // If token is still valid, reuse it
             if ($this->access_token && $this->token_expires > time() + 60) {
                 return $this->access_token;
             }
@@ -45,7 +44,6 @@ if (!class_exists('Gokul_Plugin_Walmart_API')) {
             $code = wp_remote_retrieve_response_code($response);
             $data = json_decode(wp_remote_retrieve_body($response), true);
 
-            // Debug: log the full response for troubleshooting
             if ($code !== 200) {
                 return [
                     'error' => 'OAuth error: HTTP ' . $code . ' - ' . print_r($data, true)
@@ -62,16 +60,16 @@ if (!class_exists('Gokul_Plugin_Walmart_API')) {
         }
 
         /**
-         * Test Walmart API account connectivity using OAuth2.0
-         * @return array
+         * Test Walmart API account connectivity
          */
         public function test_account() {
             $token = $this->get_access_token();
             if (is_array($token) && isset($token['error'])) {
                 return ['success' => false, 'message' => $token['error']];
             }
+
             if (!$token) {
-                return ['success' => false, 'message' => 'Could not obtain OAuth2.0 access token. Check your Client ID/Secret.'];
+                return ['success' => false, 'message' => 'Could not obtain OAuth2.0 access token.'];
             }
 
             $endpoint = 'https://marketplace.walmartapis.com/v3/feeds';
@@ -79,9 +77,8 @@ if (!class_exists('Gokul_Plugin_Walmart_API')) {
                 'Authorization' => 'Bearer ' . $token,
                 'Accept' => 'application/json',
                 'WM_CONSUMER.ID' => $this->client_id,
-                'WM_QOS.CORRELATION_ID' => uniqid(), // must not be blank!
-                'WM_SVC.NAME' => 'Walmart Marketplace', // must not be blank!
-                // 'Content-Type' => 'application/json', // only for POST/PUT
+                'WM_QOS.CORRELATION_ID' => uniqid('corr_', true),
+                'WM_SVC.NAME' => 'Walmart Marketplace'
             ];
 
             $response = wp_remote_get($endpoint, [
@@ -109,24 +106,24 @@ if (!class_exists('Gokul_Plugin_Walmart_API')) {
 
         /**
          * Get catalog items from Walmart API
-         * @return array
          */
         public function get_catalog_items() {
             $token = $this->get_access_token();
             if (is_array($token) && isset($token['error'])) {
                 return ['success' => false, 'message' => $token['error']];
             }
+
             if (!$token) {
-                return ['success' => false, 'message' => 'Could not obtain OAuth2.0 access token. Check your Client ID/Secret.'];
+                return ['success' => false, 'message' => 'Could not obtain OAuth2.0 access token.'];
             }
 
-            $endpoint = 'https://marketplace.walmartapis.com/v3/items'; // Example endpoint
+            $endpoint = 'https://marketplace.walmartapis.com/v3/items';
             $headers = [
                 'Authorization' => 'Bearer ' . $token,
                 'Accept' => 'application/json',
                 'WM_CONSUMER.ID' => $this->client_id,
-                'WM_QOS.CORRELATION_ID' => uniqid(), // must not be blank!
-                'WM_SVC.NAME' => 'Walmart Marketplace', // must not be blank!
+                'WM_QOS.CORRELATION_ID' => uniqid('corr_', true),
+                'WM_SVC.NAME' => 'Walmart Marketplace'
             ];
 
             $response = wp_remote_get($endpoint, [
@@ -151,7 +148,5 @@ if (!class_exists('Gokul_Plugin_Walmart_API')) {
                 ];
             }
         }
-
-        // ... (other methods can use $this->get_access_token() for Authorization header) ...
     }
 }
