@@ -108,4 +108,18 @@ function gokul_products_admin() {
 
     echo '</div>';
 }
+
+// Only run for admin and when a button is clicked, for example
+if (is_admin() && isset($_GET['import_walmart'])) {
+    $client_id = 'YOUR_CLIENT_ID';
+    $client_secret = 'YOUR_CLIENT_SECRET';
+    $type = 'marketplace';
+    $service_name = 'Walmart';
+    $partner_id = null;
+
+    $walmart_api = new Gokul_Plugin_Walmart_API($client_id, $client_secret, $type, $service_name, $partner_id);
+    $products = $walmart_api->get_catalog_items(['limit' => 100]);
+    $walmart_api->schedule_background_product_import($products);
+    echo "Walmart products imported!";
+}
 ?>
