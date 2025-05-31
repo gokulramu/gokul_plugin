@@ -136,5 +136,33 @@ if (!class_exists('Gokul_Plugin_Walmart_API')) {
             $this->import_products($products);
             // In production, use WP Cron or Action Scheduler for real background jobs.
         }
+
+        /**
+         * Test Walmart API account connectivity.
+         * @return array
+         */
+        public function test_account() {
+            // Try a lightweight API call to validate credentials
+            $endpoint = 'https://marketplace.walmartapis.com/v3/items?limit=1';
+            $headers = [
+                'WM_SEC.ACCESS_TOKEN' => $this->get_access_token(),
+                'WM_QOS.CORRELATION_ID' => uniqid(),
+                'WM_SVC.NAME' => $this->service_name,
+                'Accept' => 'application/json',
+            ];
+            $response = wp_remote_get($endpoint, [
+                'headers' => $headers,
+                'timeout' => 10,
+            ]);
+            if (is_wp_error($response)) {
+                return ['success' => false, 'message' => $response->get_error_message()];
+            }
+            $code = wp_remote_retrieve_response_code($response);
+            if ($code === 200) {
+                return ['success' => true, 'message' => 'Connection successful!'];
+            } else {
+                return ['success' => false, 'message' => 'API error: HTTP ' . $code];
+            }
+        }
     }
 }
