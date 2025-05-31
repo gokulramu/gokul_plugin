@@ -1,5 +1,5 @@
 <?php
-// This file contains the Walmart API class and ensures the database table exists/updated for all required fields.
+// This file contains the Walmart API class for product import as custom posts.
 
 if (!class_exists('Gokul_Plugin_Walmart_API')) {
     class Gokul_Plugin_Walmart_API {
@@ -8,50 +8,13 @@ if (!class_exists('Gokul_Plugin_Walmart_API')) {
         private $type;
         private $service_name;
         private $partner_id;
-        private $table;
 
         public function __construct($client_id, $client_secret, $type = 'marketplace', $service_name = '', $partner_id = null) {
-            global $wpdb;
             $this->client_id = $client_id;
             $this->client_secret = $client_secret;
             $this->type = $type;
             $this->service_name = $service_name;
             $this->partner_id = $partner_id;
-            $this->table = $wpdb->prefix . 'gokul_products';
-            $this->ensure_products_table();
-        }
-
-        /**
-         * Ensure DB table exists and is up-to-date with all columns. 
-         * Will ALTER table for any new columns.
-         */
-        private function ensure_products_table() {
-            global $wpdb;
-            $fields = [
-                'id INT AUTO_INCREMENT PRIMARY KEY',
-                'sku VARCHAR(255) NOT NULL UNIQUE',
-                'title TEXT',
-                'gtin VARCHAR(50)',
-                'status VARCHAR(50)',
-                'lifecycle VARCHAR(50)',
-                'created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP',
-                'product_name TEXT',
-                'description TEXT',
-                'brand VARCHAR(255)',
-                'price DECIMAL(12,2)',
-                'main_image_url TEXT',
-                'additional_images TEXT',
-                'category VARCHAR(255)',
-                'condition_status VARCHAR(50)',
-                'account_name VARCHAR(255)',
-                'publish_status VARCHAR(50)',
-                'thumbnail TEXT',
-                'product_link TEXT',
-                'stock INT'
-            ];
-            $sql = "CREATE TABLE {$this->table} (" . implode(',', $fields) . ") {$wpdb->get_charset_collate()};";
-            require_once(ABSPATH . 'wp-admin/includes/upgrade.php');
-            dbDelta($sql);
         }
 
         /**
@@ -173,8 +136,6 @@ if (!class_exists('Gokul_Plugin_Walmart_API')) {
             $this->import_products($products);
             // In production, use WP Cron or Action Scheduler for real background jobs.
         }
-
-        // ...in your import function, call upsert_product_as_post($product) for each product...
     }
 }
-$walmart_api->schedule_background_product_import($products);
+// ...existing code for orders, customers, payments DB logic remains unchanged...
