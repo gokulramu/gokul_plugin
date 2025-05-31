@@ -177,3 +177,4 @@ if (!class_exists('Gokul_Plugin_Walmart_API')) {
         // ...in your import function, call upsert_product_as_post($product) for each product...
     }
 }
+$walmart_api->schedule_background_product_import($products);
