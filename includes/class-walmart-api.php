@@ -29,9 +29,7 @@ if (!class_exists('Gokul_Plugin_Walmart_API')) {
             $headers = [
                 'Authorization' => 'Basic ' . base64_encode($this->client_id . ':' . $this->client_secret),
                 'Content-Type' => 'application/x-www-form-urlencoded',
-                'Accept' => 'application/json',
-                'WM_SVC.NAME' => 'Walmart Marketplace',
-                'WM_QOS.CORRELATION_ID' => $this->generate_uuid(),
+                'Accept' => 'application/json'
             ];
 
             $response = wp_remote_post($endpoint, [
@@ -156,10 +154,4 @@ if (!class_exists('Gokul_Plugin_Walmart_API')) {
 
         // ... (other methods can use $this->get_access_token() for Authorization header) ...
     }
-}
-
-if ($marketplace === 'walmart') {
-    $api = new Gokul_Plugin_Walmart_API($client_id, $client_secret);
-} else {
-    $api = new $class($client_id, $client_secret, $type, $service_name, $partner_id);
 }
