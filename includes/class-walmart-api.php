@@ -39,19 +39,27 @@ if (!class_exists('Gokul_Plugin_Walmart_API')) {
             ]);
 
             if (is_wp_error($response)) {
-                return false;
+                return ['error' => $response->get_error_message()];
             }
 
             $code = wp_remote_retrieve_response_code($response);
             $data = json_decode(wp_remote_retrieve_body($response), true);
 
-            if ($code === 200 && !empty($data['access_token'])) {
+            // Debug: log the full response for troubleshooting
+            if ($code !== 200) {
+                // You can also use error_log(print_r($data, true)); for server logs
+                return [
+                    'error' => 'OAuth error: HTTP ' . $code . ' - ' . print_r($data, true)
+                ];
+            }
+
+            if (!empty($data['access_token'])) {
                 $this->access_token = $data['access_token'];
                 $this->token_expires = time() + intval($data['expires_in']);
                 return $this->access_token;
             }
 
-            return false;
+            return ['error' => 'Unknown error: ' . print_r($data, true)];
         }
 
         /**
@@ -60,6 +68,9 @@ if (!class_exists('Gokul_Plugin_Walmart_API')) {
          */
         public function test_account() {
             $token = $this->get_access_token();
+            if (is_array($token) && isset($token['error'])) {
+                return ['success' => false, 'message' => $token['error']];
+            }
             if (!$token) {
                 return ['success' => false, 'message' => 'Could not obtain OAuth2.0 access token. Check your Client ID/Secret.'];
             }
