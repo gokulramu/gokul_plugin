@@ -78,8 +78,9 @@ if (!class_exists('Gokul_Plugin_Walmart_API')) {
             $headers = [
                 'Authorization' => 'Bearer ' . $token,
                 'Accept' => 'application/json',
-                'WM_SVC.NAME' => 'Walmart Marketplace',
+                'WM_CONSUMER.ID' => $this->client_id,
                 'WM_QOS.CORRELATION_ID' => uniqid(),
+                // 'Content-Type' => 'application/json', // Not required for GET
             ];
 
             $response = wp_remote_get($endpoint, [
