@@ -80,6 +80,7 @@ if (!class_exists('Gokul_Plugin_Walmart_API')) {
                 'Accept' => 'application/json',
                 'WM_CONSUMER.ID' => $this->client_id,
                 'WM_QOS.CORRELATION_ID' => uniqid(),
+                'WM_SVC.NAME' => 'Walmart Marketplace',
                 // 'Content-Type' => 'application/json', // Not required for GET
             ];
 
@@ -97,6 +98,51 @@ if (!class_exists('Gokul_Plugin_Walmart_API')) {
 
             if ($code === 200) {
                 return ['success' => true, 'message' => 'Connection successful!', 'debug' => $body];
+            } else {
+                return [
+                    'success' => false,
+                    'message' => 'API error: HTTP ' . $code,
+                    'debug' => $body
+                ];
+            }
+        }
+
+        /**
+         * Get catalog items from Walmart API
+         * @return array
+         */
+        public function get_catalog_items() {
+            $token = $this->get_access_token();
+            if (is_array($token) && isset($token['error'])) {
+                return ['success' => false, 'message' => $token['error']];
+            }
+            if (!$token) {
+                return ['success' => false, 'message' => 'Could not obtain OAuth2.0 access token. Check your Client ID/Secret.'];
+            }
+
+            $endpoint = 'https://marketplace.walmartapis.com/v3/items'; // Example endpoint
+            $headers = [
+                'Authorization' => 'Bearer ' . $token,
+                'Accept' => 'application/json',
+                'WM_CONSUMER.ID' => $this->client_id,
+                'WM_QOS.CORRELATION_ID' => uniqid(),
+                'WM_SVC.NAME' => 'Walmart Marketplace',
+            ];
+
+            $response = wp_remote_get($endpoint, [
+                'headers' => $headers,
+                'timeout' => 20,
+            ]);
+
+            if (is_wp_error($response)) {
+                return ['success' => false, 'message' => $response->get_error_message()];
+            }
+
+            $code = wp_remote_retrieve_response_code($response);
+            $body = wp_remote_retrieve_body($response);
+
+            if ($code === 200) {
+                return ['success' => true, 'message' => 'Catalog items fetched!', 'data' => $body];
             } else {
                 return [
                     'success' => false,
