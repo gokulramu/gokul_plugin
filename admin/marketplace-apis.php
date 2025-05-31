@@ -90,6 +90,11 @@ function gokul_marketplace_apis_admin() {
     global $test_results, $tested_marketplace, $tested_account_index;
     $accounts = gokul_marketplace_get_accounts();
 
+    // Show log if present
+    if (isset($test_results['log']) && $test_results['log']) {
+        echo '<div class="notice notice-error"><strong>Log:</strong> ' . esc_html($test_results['log']) . '</div>';
+    }
+
     ?>
     <div class="wrap">
         <h1>Marketplace APIs</h1>
@@ -260,7 +265,3 @@ function gokul_marketplace_apis_admin() {
     </script>
     <?php
 }
-if (isset($test_results['log']) && $test_results['log']) {
-    echo '<div class="notice notice-error"><strong>Log:</strong> ' . esc_html($test_results['log']) . '</div>';
-}
-?>
