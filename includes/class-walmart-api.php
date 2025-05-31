@@ -14,6 +14,16 @@ if (!class_exists('Gokul_Plugin_Walmart_API')) {
         }
 
         /**
+         * Generate a random UUID v4 for WM_QOS.CORRELATION_ID
+         */
+        private function generate_uuid() {
+            $data = random_bytes(16);
+            $data[6] = chr((ord($data[6]) & 0x0f) | 0x40);
+            $data[8] = chr((ord($data[8]) & 0x3f) | 0x80);
+            return vsprintf('%s%s-%s-%s-%s-%s%s%s', str_split(bin2hex($data), 4));
+        }
+
+        /**
          * Get OAuth2.0 access token from Walmart
          */
         private function get_access_token() {
@@ -28,7 +38,9 @@ if (!class_exists('Gokul_Plugin_Walmart_API')) {
             $headers = [
                 'Authorization' => 'Basic ' . base64_encode($this->client_id . ':' . $this->client_secret),
                 'Content-Type' => 'application/x-www-form-urlencoded',
-                'Accept' => 'application/json'
+                'Accept' => 'application/json',
+                'WM_SVC.NAME' => 'Walmart Marketplace',
+                'WM_QOS.CORRELATION_ID' => $this->generate_uuid(),
             ];
 
             $response = wp_remote_post($endpoint, [
@@ -60,25 +72,24 @@ if (!class_exists('Gokul_Plugin_Walmart_API')) {
         }
 
         /**
-         * Test Walmart API account connectivity
+         * Test Walmart API account connectivity using OAuth2.0
+         * @return array
          */
         public function test_account() {
             $token = $this->get_access_token();
             if (is_array($token) && isset($token['error'])) {
                 return ['success' => false, 'message' => $token['error']];
             }
-
             if (!$token) {
-                return ['success' => false, 'message' => 'Could not obtain OAuth2.0 access token.'];
+                return ['success' => false, 'message' => 'Could not obtain OAuth2.0 access token. Check your Client ID/Secret.'];
             }
 
             $endpoint = 'https://marketplace.walmartapis.com/v3/feeds';
             $headers = [
                 'Authorization' => 'Bearer ' . $token,
                 'Accept' => 'application/json',
-                'WM_CONSUMER.ID' => $this->client_id,
-                'WM_QOS.CORRELATION_ID' => uniqid('corr_', true),
-                'WM_SVC.NAME' => 'Walmart Marketplace'
+                'WM_SVC.NAME' => 'Walmart Marketplace',
+                'WM_QOS.CORRELATION_ID' => $this->generate_uuid(),
             ];
 
             $response = wp_remote_get($endpoint, [
@@ -106,24 +117,26 @@ if (!class_exists('Gokul_Plugin_Walmart_API')) {
 
         /**
          * Get catalog items from Walmart API
+         * @return array
          */
-        public function get_catalog_items() {
+        public function get_catalog_items($args = []) {
             $token = $this->get_access_token();
             if (is_array($token) && isset($token['error'])) {
                 return ['success' => false, 'message' => $token['error']];
             }
-
             if (!$token) {
-                return ['success' => false, 'message' => 'Could not obtain OAuth2.0 access token.'];
+                return ['success' => false, 'message' => 'Could not obtain OAuth2.0 access token. Check your Client ID/Secret.'];
             }
 
-            $endpoint = 'https://marketplace.walmartapis.com/v3/items';
+            $limit = isset($args['limit']) ? intval($args['limit']) : 1;
+            $offset = isset($args['offset']) ? intval($args['offset']) : 0;
+            $endpoint = 'https://marketplace.walmartapis.com/v3/items?limit=' . $limit . '&offset=' . $offset;
+
             $headers = [
                 'Authorization' => 'Bearer ' . $token,
                 'Accept' => 'application/json',
-                'WM_CONSUMER.ID' => $this->client_id,
-                'WM_QOS.CORRELATION_ID' => uniqid('corr_', true),
-                'WM_SVC.NAME' => 'Walmart Marketplace'
+                'WM_SVC.NAME' => 'Walmart Marketplace',
+                'WM_QOS.CORRELATION_ID' => $this->generate_uuid(),
             ];
 
             $response = wp_remote_get($endpoint, [
