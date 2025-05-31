@@ -1,5 +1,4 @@
 <?php
-<?php
 if (!class_exists('Gokul_Plugin_Walmart_API')) {
     class Gokul_Plugin_Walmart_API {
         private $client_id;
